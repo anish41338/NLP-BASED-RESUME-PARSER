@@ -1,5 +1,6 @@
 from langchain_community.chat_models import ChatOpenAI
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
+
 import os
 import streamlit as st
 from dotenv import load_dotenv
