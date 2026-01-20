@@ -1,55 +1,48 @@
-from langchain_community.chat_models import ChatOpenAI
+import streamlit as st
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 
-import os
-import streamlit as st
-from dotenv import load_dotenv
-
-load_dotenv()
 
 def enhance_resume_section(resume_text, jd_text, missing_skills):
-    openai_api_key = os.getenv('OPENAI_API_KEY')
-    if not openai_api_key:
-        try:
-            openai_api_key = st.secrets["OPENAI_API_KEY"]
-        except:
-            return HARD_CODED_RESUME
-
-    if not openai_api_key:
-        return HARD_CODED_RESUME
-
     try:
+        # 🔑 Load API key correctly (Streamlit Cloud safe)
+        openai_api_key = st.secrets["OPENAI_API_KEY"].strip()
+
         prompt = PromptTemplate(
             input_variables=["resume", "jd", "missing_skills"],
             template=(
-                "You are a career coach AI. Given the following resume section, job description, and missing skills, "
-                "suggest improved wording for the resume section to better match the job description and address the missing skills.\n"
-                "Resume Section:\n{resume}\n"
-                "Job Description:\n{jd}\n"
-                "Missing Skills:\n{missing_skills}\n"
+                "You are a career coach AI. Given the following resume section, "
+                "job description, and missing skills, suggest improved wording "
+                "for the resume section to better match the job description and "
+                "address the missing skills.\n\n"
+                "Resume Section:\n{resume}\n\n"
+                "Job Description:\n{jd}\n\n"
+                "Missing Skills:\n{missing_skills}\n\n"
                 "Improved Resume Section:"
             )
         )
 
         llm = ChatOpenAI(
+            model="gpt-4o-mini",
             temperature=0.3,
-            model="gpt-3.5-turbo",
-            openai_api_key=openai_api_key
+            api_key=openai_api_key
         )
 
-        return llm.invoke(
+        response = llm.invoke(
             prompt.format(
                 resume=resume_text,
                 jd=jd_text,
                 missing_skills=", ".join(missing_skills)
             )
-        ).content
+        )
+
+        return response.content
 
     except Exception:
         return HARD_CODED_RESUME
 
 
-# 🔒 STATIC HARDCODED RESPONSE (NO VARIABLES, NO LOGIC)
+# 🔒 STATIC FALLBACK (NO AI)
 HARD_CODED_RESUME = """
 PROFESSIONAL SUMMARY
 Motivated and disciplined computer science student with strong fundamentals in software development,
